@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/bot.js": {
-      "maxDuration": 10
+      "runtime": "nodejs18.x"
     }
   }
 }
