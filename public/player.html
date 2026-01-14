@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeraPlayDown – Player</title>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Inter,system-ui;
+  background:#f0f2f5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.card{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  padding:18px;
+  border-radius:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.15);
+  text-align:center;
+}
+h2{
+  margin-bottom:12px;
+  color:#3248f5;
+}
+video{
+  width:100%;
+  border-radius:16px;
+  background:#000;
+}
+.btn{
+  display:block;
+  margin-top:14px;
+  padding:16px;
+  border-radius:50px;
+  text-decoration:none;
+  font-size:18px;
+  font-weight:700;
+  color:#fff;
+}
+.download{
+  background:#16a34a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>▶ Play & Download</h2>
+
+  <video id="video" controls></video>
+
+  <a id="downloadBtn" class="btn download" href="#">
+    ⬇ Download Video
+  </a>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const teraUrl = params.get("url");
+
+if(!teraUrl){
+  alert("Invalid TeraBox Link");
+}
+
+const api =
+  "https://ztera.yaartunah.workers.dev/?url=" +
+  encodeURIComponent(teraUrl);
+
+fetch(api)
+.then(res => res.json())
+.then(data => {
+
+  const playUrl = data.stream || data.hls || data.play;
+  const downloadUrl = data.download || data.url;
+
+  const video = document.getElementById("video");
+
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(playUrl);
+    hls.attachMedia(video);
+  } else {
+    video.src = playUrl;
+  }
+
+  document.getElementById("downloadBtn").href = downloadUrl;
+
+})
+.catch(()=>{
+  alert("Failed to load video");
+});
+</script>
+
+</body>
+</html>
