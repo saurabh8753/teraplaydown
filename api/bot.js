@@ -9,12 +9,7 @@ module.exports = async (req, res) => {
     return res.status(200).send("TeraPlayDown Bot Active");
   }
 
-  let update;
-  try {
-    update = req.body;
-  } catch (e) {
-    return res.status(200).end();
-  }
+  const update = req.body;
 
   if (!update.message || !update.message.text) {
     return res.status(200).end();
@@ -30,7 +25,7 @@ module.exports = async (req, res) => {
 
   if (text.includes("terabox") || text.includes("1024terabox")) {
     const playerLink =
-      `${BASE_URL}?url=${encodeURIComponent(text)}`;
+      BASE_URL + encodeURIComponent(text);
 
     payload = {
       chat_id: chatId,
