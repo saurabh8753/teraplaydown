@@ -1,0 +1,31 @@
+<script>
+    document.getElementById('actionBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // URL se 'url' parameter nikalne ke liye
+        const urlParams = new URLSearchParams(window.location.search);
+        const userProvidedUrl = urlParams.get('url');
+
+        if (!userProvidedUrl) {
+            alert("No link found!");
+            return;
+        }
+
+        // 1. Chrome me open karne wala link (Dynamic URL)
+        var externalUrl = "https://videoplay-2ym.pages.dev/?url=" + userProvidedUrl;
+        
+        // 2. Ads Link
+        var telegramInternalUrl = "https://www.effectivegatecpm.com/hamfxc0cre?key=98b8b86d55734c2055e254a6a0e2c5d8";
+
+        if (navigator.userAgent.match(/Android/i)) {
+            var chromeIntent = "intent://" + externalUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+            window.location.href = chromeIntent;
+            setTimeout(function() {
+                window.location.href = telegramInternalUrl;
+            }, 800);
+        } else {
+            window.open(externalUrl, '_blank');
+            window.location.href = telegramInternalUrl;
+        }
+    });
+</script>
