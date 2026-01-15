@@ -4,7 +4,7 @@ const { Telegraf, Markup } = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // 2. Bot Logic
-bot.start((ctx) => ctx.reply('Welcome to Desitera bot! Send me any Terabox link then i send you play and download link.'));
+bot.start((ctx) => ctx.reply('💌Welcome to Desitera bot! Send me any Terabox link then i send you play and download link.🔗'));
 
 bot.on('text', async (ctx) => {
     const userLink = ctx.message.text;
