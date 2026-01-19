@@ -7,7 +7,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const MONGO_URI = process.env.MONGODB_URI;
 const ADMIN_ID = Number(process.env.ADMIN_ID);
 
-// Mongo client (global – reuse connection)
+// Mongo
 let client;
 let usersCol;
 
@@ -19,24 +19,22 @@ async function connectDB() {
   const db = client.db("teraplaydown");
   usersCol = db.collection("users");
 
-  // index for fast lookup
   await usersCol.createIndex({ userId: 1 }, { unique: true });
-
   return usersCol;
 }
 
-// Save user helper
+// Save / update user
 async function saveUser(ctx) {
   const users = await connectDB();
-  const user = ctx.from;
+  const u = ctx.from;
 
   await users.updateOne(
-    { userId: user.id },
+    { userId: u.id },
     {
       $set: {
-        userId: user.id,
-        username: user.username || "",
-        firstName: user.first_name || "",
+        userId: u.id,
+        username: u.username || "",
+        firstName: u.first_name || "",
         lastSeen: new Date()
       }
     },
@@ -47,51 +45,49 @@ async function saveUser(ctx) {
 // START
 bot.start(async (ctx) => {
   await saveUser(ctx);
-
   ctx.reply(
     "💌 Welcome to Desitera Bot!\n\nSend any Terabox link to get Play & Download."
   );
 });
 
-// HANDLE LINKS
+// TEXT HANDLER
 bot.on("text", async (ctx) => {
   await saveUser(ctx);
-
   const text = ctx.message.text.trim();
 
-  // ADMIN COMMANDS
-  if (text === "/stats" && ctx.from.id === ADMIN_ID) {
-    const users = await connectDB();
+  // ================= ADMIN =================
+  if (ctx.from.id === ADMIN_ID) {
+    if (text === "/stats") {
+      const users = await connectDB();
+      const total = await users.countDocuments();
+      const active24h = await users.countDocuments({
+        lastSeen: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      });
 
-    const total = await users.countDocuments();
-    const active24h = await users.countDocuments({
-      lastSeen: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-    });
-
-    return ctx.reply(
-      `📊 Bot Stats\n\n👥 Total Users: ${total}\n⚡ Active (24h): ${active24h}`
-    );
-  }
-
-  if (text.startsWith("/broadcast") && ctx.from.id === ADMIN_ID) {
-    const msg = text.replace("/broadcast", "").trim();
-    if (!msg) return ctx.reply("❌ Message missing");
-
-    const users = await connectDB();
-    const allUsers = await users.find().toArray();
-
-    let sent = 0;
-    for (const u of allUsers) {
-      try {
-        await bot.telegram.sendMessage(u.userId, msg);
-        sent++;
-      } catch (e) {}
+      return ctx.reply(
+        `📊 Bot Stats\n\n👥 Total Users: ${total}\n⚡ Active (24h): ${active24h}`
+      );
     }
 
-    return ctx.reply(`📢 Broadcast sent to ${sent} users`);
+    if (text.startsWith("/broadcast")) {
+      const msg = text.replace("/broadcast", "").trim();
+      if (!msg) return ctx.reply("❌ Broadcast message missing");
+
+      const users = await connectDB();
+      const allUsers = await users.find().toArray();
+
+      let sent = 0;
+      for (const u of allUsers) {
+        try {
+          await bot.telegram.sendMessage(u.userId, msg);
+          sent++;
+        } catch {}
+      }
+      return ctx.reply(`📢 Broadcast sent to ${sent} users`);
+    }
   }
 
-  // NORMAL USER FLOW
+  // ================= USER FLOW =================
   if (
     text.includes("terabox") ||
     text.includes("terashare") ||
@@ -101,15 +97,34 @@ bot.on("text", async (ctx) => {
       "https://teraplaydown-site.vercel.app/?link=" +
       encodeURIComponent(text);
 
-    return ctx.reply(
+    // 1️⃣ Main button message
+    const playMsg = await ctx.reply(
       "📥 File Ready!",
       Markup.inlineKeyboard([
         Markup.button.url("▶️ Play & Download", landingUrl)
       ])
     );
+
+    // 2️⃣ Note message
+    const noteMsg = await ctx.reply(
+      "⚠️ *Note:*\nYe link *5 minutes* ke baad automatically delete ho jaayega.\n📌 Please forward save messages ⏱",
+      { parse_mode: "Markdown" }
+    );
+
+    // 3️⃣ Auto delete after 5 minutes
+    setTimeout(async () => {
+      try {
+        await ctx.deleteMessage(playMsg.message_id);
+        await ctx.deleteMessage(noteMsg.message_id);
+      } catch (e) {
+        // message already deleted / user blocked
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return;
   }
 
-  ctx.reply("❌ Send a valid Terabox link");
+  ctx.reply("❌ Please send a valid Terabox link");
 });
 
 // VERCEL HANDLER
