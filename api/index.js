@@ -49,7 +49,7 @@ bot.start(async (ctx) => {
   await saveUser(ctx);
 
   ctx.reply(
-    "💌 Welcome to Desitera Bot!\n\nSend any Terabox link to get Play & Download."
+    "💌 Welcome to Desitera Bot\n\nSend any Terabox link to get direct Play & Download link."
   );
 });
 
@@ -102,7 +102,7 @@ bot.on("text", async (ctx) => {
       encodeURIComponent(text);
 
     return ctx.reply(
-      "📥 File Ready!",
+      "📥 Aapki File Ready Hai ⚡",
       Markup.inlineKeyboard([
         Markup.button.url("▶️ Play & Download", landingUrl)
       ])
