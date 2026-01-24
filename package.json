@@ -1,5 +1,5 @@
 {
-  "name": "teraplaydown-bots",
+  "name": "teraplaydown-bot",
   "version": "1.3.0",
   "main": "api/index.js",
   "dependencies": {
