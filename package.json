@@ -1,7 +1,10 @@
 {
-  "name": "teraplaydown-bot",
-  "version": "1.3.0",
-  "main": "api/index.js",
+  "name": "desitera-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "telegraf": "^4.12.2",
     "mongodb": "^6.5.0"
